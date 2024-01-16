@@ -15,5 +15,5 @@ To get started, please run . ./main_menu in the project directory, including Zen
 -Graphical User Interface (GUI): Access a user-friendly GUI with Zenity for a seamless and visually intuitive experience.
 
 
-------------------------------------------------------------------Not----------------------------------------------------------------------------------
+---------------------------------------------------------------------Not-----------------------------------------------------------------------------------
 You must install zenity package and change permissions for all files so that it becomes excutable.
