@@ -1,5 +1,6 @@
 # Database-engine
-Welcome to My Database Engine Name, a lightweight and versatile database engine implemented entirely in Bash scripting for Linux environments. This project aims to provide a simple yet powerful solution for managing and interacting with databases through the command line, complemented by a user-friendly graphical interface powered by Zenity.
+Welcome to My Database Engine Name, a lightweight and versatile database engine implemented entirely in Bash scripting for Linux environments.
+This project aims to provide a simple yet powerful solution for managing and interacting with databases through the command line, complemented by a user-friendly graphical interface powered by Zenity.
 
 -Lightweight: Designed to be resource-efficient and easily deployable on a variety of Linux systems.
 -Graphical User Interface (GUI): Utilize Zenity to access a user-friendly GUI, making it accessible for users who prefer graphical interfaces.
