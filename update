@@ -1,0 +1,66 @@
+#!/bin/bash
+
+shopt -s extglob
+export LC_COLLATE=C
+
+# GUI for selecting a table
+table_name=$(zenity --entry --title="Update Table" --text="Tables are:\n$(ls -I '*meta')\nEnter table name or press Esc:")
+if [ -e $table_name ]; then 
+	if [[ $table_name =~ ^[a-zA-Z][a-zA-Z0-9]*$ ]]; then
+		meta_table="${table_name}_meta"
+
+		# Display column names in a GUI
+		zenity --info --title="Update Table" --text="Column Names:\n$(head -n 1 "$meta_table" | tr ':' '\n')"
+		data_types=$(awk -F':' 'NR==2 {print $0}' "$meta_table")
+
+		while true; do
+		    # GUI for entering column name to update
+		    updatecol=$(zenity --entry --title="Update Table" --text="Enter name of the column you want to update its value:")
+
+		    if grep -q "$updatecol" <<< "$(head -n 1 "$meta_table" | tr ':' '\n')"; then
+		        data_type=$(echo "$data_types" | cut -d ':' -f $(awk -F':' -v col="$updatecol" '{for (i=1; i<=NF; i++) if ($i == col) print i}' "$meta_table"))
+
+		        # GUI for entering old value
+		        oldValue=$(zenity --entry --title="Update Table" --text="Enter the old value in $updatecol to update:")
+
+		        if [ $data_type = 'int' ]; then
+		            # GUI for entering new value (numeric)
+					while true; do
+				        newValue=$(zenity --entry --title="Update Table" --text="Enter the new value:")
+						if [[ $newValue =~ ^[0-9][0-9]*$  ]]; then
+							break
+						else
+							zenity --error --text="Invalid value, please Enter a numeric value"
+						fi
+					done
+		        else
+		            # GUI for entering new value (string)
+		            newValue=$(zenity --entry --title="Update Table" --text="Enter the new value:")
+		        fi
+
+		        col_number=$(awk -F':' -v col="$updatecol" '{for (i=1; i<=NF; i++) if ($i == col) print i}' "$meta_table")
+
+		        if [ $col_number = 1 ]; then
+		            if awk -F':' -v col="$col_number" -v newVal="$newValue" -v updatecol="$updatecol" '$col == newVal {print updatecol}' "$table_name" | grep -q "."; then
+		                zenity --error --text="Not unique. New value must be unique for primary key column."
+		            else
+		                awk -v col="$col_number" -v oldVal="$oldValue" -v newVal="$newValue" 'BEGIN{FS=OFS=":"} {if ($col == oldVal) $col = newVal; print}' "$table_name" > temp_file && mv temp_file "$table_name"
+		            fi
+		            break
+		        else
+		            awk -v col="$col_number" -v oldVal="$oldValue" -v newVal="$newValue" 'BEGIN{FS=OFS=":"} {if ($col == oldVal) $col = newVal; print}' "$table_name" > temp_file && mv temp_file "$table_name"
+		            break
+		        fi
+		    else
+		        zenity --error --text="Invalid input. Column '$updatecol' not found in metadata."
+		    fi
+		done
+
+	else
+		zenity --error --text="Invalid table name."
+	fi
+else
+		zenity --error --text="Invalid Table Dose not Exist."
+fi
+
+. ../.././connectDB
