@@ -1,0 +1,69 @@
+#!/bin/bash
+
+shopt -s extglob
+export LC_COLLATE=C
+
+Table_name=$(zenity --entry --title="Create Table" --text="Enter Table Name:")
+
+if [[ $Table_name =~ ^[a-zA-Z][a-zA-Z0-9]*$ ]]; then
+    if [ -f "./$Table_name" ]; then
+        zenity --info --text="Table Already Exists"
+    else
+        touch "$Table_name"
+        meta_table="${Table_name}_meta"
+        touch "$meta_table"
+        
+        # GUI for getting the number of columns
+		while true
+		do
+        	cols_num=$(zenity --entry --title="Create Table" --text="How Many Columns Do You Want To Enter?")
+			if [[ $cols_num =~ ^[1-9][0-9]*$ ]]; then
+				break
+			else
+				zenity --error --text="Invalid number of  columns."
+			fi
+	
+		done
+        
+        cols=""
+        data_type_row=""
+        
+        for ((i=0; i<cols_num; i++)); do
+            while true; do
+                col_name=$(zenity --entry --title="Create Table" --text="Enter Column name:")
+                
+                # Check if the column name already exists in the string
+                if [[ ":$cols:" != *":$col_name:"* ]]; then
+                    cols="$cols:$col_name"
+                    break
+                else
+                    zenity --error --text="Column name must be unique. Please enter a different name."
+                fi
+            done
+            
+            # GUI for selecting data type
+            d_type=$(zenity --list --title="Create Table" --column="Options" "int" "str")
+            
+            case $d_type in
+                "int") 
+                    data_type_row="$data_type_row:int"
+                    ;;
+                "str")
+                    data_type_row="$data_type_row:str"
+                    ;;
+                *)
+                    # Handle other cases (optional)
+                    ;;
+            esac
+        done
+        
+        echo "${cols:1}" >> "$meta_table"
+        echo "${data_type_row:1}" >> "$meta_table"
+        
+        zenity --info --text="Table $Table_name Created Successfully"
+    fi
+else
+    zenity --error --text="Invalid Table name"
+fi
+
+. ../.././connectDB

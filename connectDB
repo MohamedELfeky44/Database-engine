@@ -1,0 +1,48 @@
+#!/bin/bash
+
+shopt -s extglob
+export LC_COLLATE=C
+
+while true; do
+    option=$(zenity --list --title="Table Operations" --column="Options" "Create Table" "List Tables" "Insert Into Table" "Select From Table" "Delete From Table" "Update Table" "Drop Table" "Back to Main Menu")
+
+    case $option in
+        "Create Table")
+            . ../.././createTable
+            ;;
+
+        "List Tables")
+            tables=$(ls -I '*meta')
+            zenity --info --text="Tables are:\n$tables"
+            ;;
+
+        "Insert Into Table")
+            . ../.././insert
+            ;;
+
+        "Select From Table")
+            . ../.././selectTable
+            ;;
+
+        "Delete From Table")
+            . ../.././delete
+            ;;
+
+        "Update Table")
+            . ../.././update
+            ;;
+
+        "Drop Table")
+            . ../.././dropTable
+            ;;
+
+        "Back to Main Menu")
+            cd ../..
+            . ./main_menu
+            ;;
+        
+        *)
+            exit 0
+            ;;
+    esac
+done

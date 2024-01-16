@@ -1,0 +1,77 @@
+#!/bin/bash
+
+shopt -s extglob
+export LC_COLLATE=C
+
+# GUI for selecting a table
+table_name=$(zenity --entry --title="Insert Into Table" --text="Tables are:\n$(ls -I '*meta')\nEnter table name or press Esc:")
+column_values=''
+
+if [ -e $table_name ]; then 
+	if [[ $table_name =~ ^[a-zA-Z][a-zA-Z0-9]*$ ]]; then
+		meta_table="${table_name}_meta"
+
+		my_variable=$(tail -1 "./$meta_table")
+
+		# Set IFS to ":" (colon) to split the string
+		IFS=":"
+
+		# Convert the variable to an array
+		my_array=($my_variable)
+		declare -i counter=0
+
+		# Iterate over the array elements
+		for element in "${my_array[@]}"; do
+		    echo "columns are: "
+		    head -1 "./$meta_table"
+		    echo "${column_values:1}"
+
+		    if [ "$element" = 'int' ]; then
+		        # GUI for entering a numeric value
+		        
+		        while true; do
+					value=$(zenity --entry --title="Insert Into Table" --text="Enter a value:")
+		            if [[ $value =~ ^[0-9][0-9]*$ ]]; then
+		                if ! grep -q "^$value:" "./$table_name"; then
+		                    column_values="$column_values:$value"
+		                    break
+		                else
+		                    zenity --error --text="Value must be unique in the primary key column."
+		                fi
+		            else
+		                zenity --error --text="Please enter a numeric value."
+		            fi
+		        done
+		    else
+		        # GUI for entering a string value
+		        while true; do
+		        value=$(zenity --entry --title="Insert Into Table" --text="Enter a value:")
+		            if [[ $value =~ ^[a-zA-Z][a-zA-Z0-9]*$ ]]; then
+		                if ! grep -q "^$value:" "./$table_name"; then
+		                    column_values="$column_values:$value"
+		                    break
+		                else
+		                    zenity --error --text="Value must be unique in the primary key column."
+		                fi
+		            else
+		                zenity --error --text="Please enter a string value."
+		            fi
+		        done
+		    fi
+		    counter=$((counter + 1))
+		done
+
+		# Reset IFS to its default value (space, tab, and newline)
+		IFS=$' \t\n'
+
+		echo "${column_values:1}" >> "$table_name"
+		zenity --info --text="Values inserted into $table_name successfully."
+
+	else
+		zenity --error --text="Invalid Table name."
+	fi
+else
+		zenity --error --text="Invalid Table Dose not Exist."
+fi
+
+. ../.././connectDB

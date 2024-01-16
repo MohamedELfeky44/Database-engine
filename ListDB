@@ -1,0 +1,11 @@
+#!/bin/bash
+
+dir=./DataBases
+
+# GUI for displaying available databases
+databases=$(find "$dir" -maxdepth 1 -type d -exec basename {} \;)
+if [ -z "$databases" ]; then
+    zenity --info --text="There are no databases yet."
+else
+    zenity --info --text="Available Databases:\n$databases"
+fi

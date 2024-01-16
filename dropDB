@@ -1,0 +1,36 @@
+#!/bin/bash
+
+shopt -s extglob
+export LC_COLLATE=C
+
+echo -----------------
+
+while true; do
+    db_name=$(zenity --entry --title="Drop Database" --text="Enter the Database you want to drop or press Esc:")
+
+    case $db_name in
+        [eE][sS][cC])
+            . ./main_menu
+            break
+            ;;
+        *)
+            if [[ -z "$db_name" ]]; then
+                zenity --error --text="Error: Database name cannot be empty."
+            elif [[ ! -e "./DataBases/$db_name" ]]; then
+                zenity --error --text="Error: Database '$db_name' does not exist."
+            else
+                zenity --question --title="Confirmation" --text="Are you sure you want to delete the database '$db_name'? (y/n)"
+
+                case $? in
+                    0)
+                        rm -r "./DataBases/$db_name"
+                        zenity --info --text="Database '$db_name' deleted successfully."
+                        ;;
+                    1)
+                        echo -----------------
+                        ;;
+                esac
+            fi
+            ;;
+    esac
+done

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+shopt -s extglob
+export LC_COLLATE=C
+
+db_name=$(zenity --entry --title="Create Database" --text="Enter Database Name:")
+
+if [[ $db_name =~ ^[a-zA-Z][a-zA-Z0-9]*$ && $db_name != "database" ]]
+then
+    if [ -d "./DataBases/$db_name" ]
+    then
+        zenity --info --text="Database Already Exists"
+    else
+        mkdir "./DataBases/$db_name"
+        zenity --info --text="Database $db_name Created Successfully"
+    fi
+else
+    zenity --error --text="Invalid Database name"
+    . ./createDB
+fi

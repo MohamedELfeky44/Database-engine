@@ -1,0 +1,56 @@
+#!/bin/bash
+
+shopt -s extglob
+export LC_COLLATE=C
+
+db_dir=DataBases
+if [ -e $db_dir ]; then
+	echo "DataBases is here"
+else
+	mkdir DataBases
+fi
+
+while true; do
+    selection=$(zenity --list --title="Database Menu" --text="Select an option:" \
+        --column="Options" Create_DB Connect_DB List_DB Drop_DB Exit)
+
+    case $selection in
+        "Create_DB")
+            . ./createDB
+            . ./main_menu
+            ;;
+        
+        "Connect_DB")
+            cd DataBases
+            dbName=$(zenity --entry --title="Connect to Database" --text="Enter Database Name:")
+            directories=$(ls -l . | awk '/^d/ {print $NF}')
+            if [[ $directories =~ (^|[[:space:]])$dbName($|[[:space:]]) ]]; then
+                echo "Database $dbName exists. Connecting..."
+                cd ./$dbName
+                . ../.././connectDB $dbName
+            else
+                zenity --error --text="Database $dbName does not exist."
+                cd ..
+            fi
+            ;;
+        
+        "List_DB")
+            . ./ListDB
+            . ./main_menu
+            ;;
+        
+        "Drop_DB")
+            . ./dropDB
+            . ./main_menu
+            ;;
+        
+        "Exit")
+            zenity --info --text="Exiting the Database Engine"
+            break
+            ;;
+        
+        *)
+			exit 0
+            ;;
+    esac
+done

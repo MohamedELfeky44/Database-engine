@@ -1,0 +1,73 @@
+#!/bin/bash
+
+shopt -s extglob
+export LC_COLLATE=C
+
+echo "Tables to select from are: "
+ls -I '*meta'
+table_name=$(zenity --entry --title="Enter Table Name" --text="Tables to select from are:\n$(ls -I '*meta')\nEnter table name:")
+
+meta_table="${table_name}_meta"
+
+if [ -z "$table_name" ]; then
+		zenity --error --text="Please choose a valid table."
+		exit 1
+	fi
+	if [ -e $table_name ]; then 
+	while true; do
+		selection=$(zenity --list --title="Select an option" --column="Options" "Select All" "Select Specific Row" "Select by Column" "Exit")
+
+		case $selection in
+		    "Select All")
+		        zenity --info --text="Selected All\n$(cat $table_name)"
+		        break
+		        ;;
+
+		    "Select Specific Row")
+		        echo "Column Names are :"
+		        columns=$(head -n 1 "$meta_table" | tr ':' '\n')
+		        zenity --info --text="Column Names:\n$columns"
+
+		        filterCol=$(zenity --entry --title="Enter Column Name" --text="Enter name of the column you want to filter by:")
+		        if grep -q "$filterCol" <<< "$columns"; then
+		            filterValue=$(zenity --entry --title="Enter Filter Value" --text="Enter the value in $filterCol to filter by:")
+		            col_number=$(awk -F':' -v col="$filterCol" '{for (i=1; i<=NF; i++) if ($i == col) print i}' "$meta_table")
+		            result=$(awk -F':' -v col="$col_number" -v val="$filterValue" '$(col) == val' "$table_name")
+		            zenity --info --text="Filtered Rows:\n$result"
+		            break
+		        else
+		            zenity --error --text="Invalid input. Column '$filterCol' not found in metadata."
+		        fi
+		        ;;
+
+		    "Select by Column")
+		        echo "Column Names are :"
+		        columns=$(head -n 1 "$meta_table" | tr ':' '\n')
+		        zenity --info --text="Column Names:\n$columns"
+
+		        filterCol=$(zenity --entry --title="Enter Column Name" --text="Enter name of the column you want to filter by:")
+		        if grep -q "$filterCol" <<< "$columns"; then
+		            col_number=$(awk -F':' -v col="$filterCol" '{for (i=1; i<=NF; i++) if ($i == col) print i}' "$meta_table")
+		            result=$(awk -F':' -v col="$col_number" '{print $col}' "$table_name")
+		            zenity --info --text="Column Values:\n$result"
+		            break
+		        else
+		            zenity --error --text="Invalid input. Column '$filterCol' not found in metadata."
+		        fi
+		        ;;
+
+		    "Exit")
+		        zenity --info --text="Exiting the script."
+		        exit 0
+		        ;;
+		    *)
+		        zenity --error --text="Invalid option. Please choose a valid option."
+		        ;;
+		esac
+	done
+else
+		zenity --error --text="Invalid Table Dose not Exist."
+fi
+
+
+. ../.././connectDB

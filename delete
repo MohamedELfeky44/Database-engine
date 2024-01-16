@@ -1,0 +1,44 @@
+#!/bin/bash
+
+shopt -s extglob
+export LC_COLLATE=C
+
+# GUI for selecting a table
+table_name=$(zenity --entry --title="Delete from Table" --text="Tables are:\n$(ls -I '*meta')\nEnter table name or press Esc:")
+if [ -e $table_name ]; then 
+	if [[ $table_name =~ ^[a-zA-Z][a-zA-Z0-9]*$ ]]; then
+		meta_table="${table_name}_meta"
+		
+		# Display column names in a GUI
+		zenity --info --title="Delete from Table" --text="Column Names:\n$(head -n 1 "$meta_table" | tr ':' '\n')"
+		if [ -s $table_name ]; then
+			while true; do
+				# GUI for entering column name
+				deletecol=$(zenity --entry --title="Delete from Table" --text="Enter name of the column you want to delete by:")
+				
+				if grep -q "$deletecol" <<< "$(head -n 1 "$meta_table" | tr ':' '\n')"; then
+				    echo "Valid input."
+				    
+				    # GUI for entering column value
+				    deleteValue=$(zenity --entry --title="Delete from Table" --text="Enter the value in $deletecol to delete by:")
+
+				    col_number=$(awk -F':' -v col="$deletecol" '{for (i=1; i<=NF; i++) if ($i == col) print i}' "$meta_table")
+
+				    # Use awk to filter and update the original file
+				    awk -F':' -v col="$col_number" -v val="$deleteValue" '$(col) != val' "$table_name" > temp_file && mv temp_file "$table_name"
+				    break
+				else
+				    zenity --error --text="Invalid input. Column '$deletecol' not found in metadata."
+				fi
+			done
+		else
+			zenity --error --text="Table is empty, you can not delete from empty table"
+		fi
+	else
+		zenity --error --text="Invalid table name"
+	fi
+else
+		zenity --error --text="Invalid Table Dose not Exist."
+fi
+
+. ../.././connectDB

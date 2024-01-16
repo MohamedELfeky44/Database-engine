@@ -1,0 +1,36 @@
+#!/bin/bash
+
+shopt -s extglob
+export LC_COLLATE=C
+
+while true; do
+    table_name=$(zenity --entry --title="Drop Table" --text="Enter the Table you want to drop or press Esc to exit:")
+
+    if [[ $table_name =~ ^[a-zA-Z][a-zA-Z0-9]*$  ]]; then
+        meta_table="${table_name}_meta"
+
+        if [[ "$table_name" == "esc" || "$table_name" == "ESC" ]]; then
+            cd ../..
+            . ./main_menu
+            break
+        elif [[ -z "$table_name" ]]; then
+            zenity --error --text="Error: Table name cannot be empty."
+        elif [[ ! -e "$table_name" ]]; then
+            zenity --error --text="Error: Table '$table_name' does not exist."
+        else
+           zenity --question --title="Confirmation" --text="Are you sure you want to delete '$table_name'?"
+           case $? in
+                    0)
+                        rm $table_name
+						rm $meta_table
+                        zenity --info --text="Table '$table_name' deleted successfully."
+                        ;;
+                    1)
+                        echo -----------------
+                        ;;
+                esac
+        fi
+    else
+        zenity --error --text="Invalid Table Name"
+    fi
+done
